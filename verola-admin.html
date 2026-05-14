@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verola Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --c1:#A3C5F1;--c2:#83A2CD;--c3:#6582AA;--c4:#4B6387;--c5:#334663;--c6:#1E2B40;
+  --white:#fff;--bg:#F2F6FC;--border:rgba(75,99,135,0.15);--text:#1E2B40;--muted:#7A90AD;
+  --success:#27ae60;--danger:#e74c3c;--warning:#f39c12;--info:#2980b9;
+}
+body{font-family:'Jost',sans-serif;background:var(--bg);color:var(--text);font-weight:300;min-height:100vh;display:flex;}
+
+/* SIDEBAR */
+.sidebar{width:240px;min-height:100vh;background:var(--c6);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar-logo{padding:2rem 1.5rem 1.5rem;border-bottom:1px solid rgba(163,197,241,0.1);}
+.sidebar-logo h1{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--c1);letter-spacing:0.2em;font-weight:300;}
+.sidebar-logo p{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--c3);margin-top:0.2rem;}
+.sidebar-nav{flex:1;padding:1rem 0;}
+.nav-section{padding:0.5rem 1.5rem 0.3rem;font-size:0.58rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--c3);margin-top:0.5rem;}
+.nav-item{display:flex;align-items:center;gap:0.75rem;padding:0.7rem 1.5rem;cursor:pointer;transition:background 0.2s,color 0.2s;color:var(--c2);font-size:0.82rem;letter-spacing:0.05em;border-left:3px solid transparent;}
+.nav-item:hover{background:rgba(163,197,241,0.07);color:var(--c1);}
+.nav-item.active{background:rgba(163,197,241,0.12);color:var(--c1);border-left-color:var(--c1);}
+.nav-icon{font-size:1rem;width:20px;text-align:center;}
+.sidebar-footer{padding:1.2rem 1.5rem;border-top:1px solid rgba(163,197,241,0.1);font-size:0.72rem;color:var(--c3);}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;color:var(--c6);}
+.topbar-actions{display:flex;align-items:center;gap:0.8rem;}
+.content{padding:2rem;flex:1;}
+
+/* CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1.4rem;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.stat-card.blue::before{background:var(--c3);}
+.stat-card.green::before{background:var(--success);}
+.stat-card.orange::before{background:var(--warning);}
+.stat-card.red::before{background:var(--danger);}
+.stat-label{font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:400;color:var(--c6);line-height:1;}
+.stat-sub{font-size:0.72rem;color:var(--muted);margin-top:0.4rem;}
+.stat-icon{position:absolute;right:1.2rem;top:50%;transform:translateY(-50%);font-size:2rem;opacity:0.12;}
+
+/* TABLES */
+.table-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem;}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);}
+.table-header h3{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:400;color:var(--c6);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:0.7rem 1.2rem;font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);text-align:left;background:#F8FAFD;border-bottom:1px solid var(--border);}
+tbody td{padding:0.85rem 1.2rem;font-size:0.82rem;border-bottom:1px solid rgba(75,99,135,0.07);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:#F8FAFD;}
+
+/* BADGES */
+.badge{display:inline-block;padding:0.22rem 0.65rem;border-radius:20px;font-size:0.62rem;letter-spacing:0.1em;font-weight:500;}
+.badge-success{background:#eafaf1;color:#1e8449;}
+.badge-warning{background:#fef9e7;color:#b7770d;}
+.badge-danger{background:#fdedec;color:#c0392b;}
+.badge-info{background:#eaf4fc;color:#1a5276;}
+.badge-gray{background:#f2f3f4;color:#626567;}
+
+/* BUTTONS */
+.btn{padding:0.55rem 1.2rem;border:none;border-radius:6px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;font-weight:500;}
+.btn-primary{background:var(--c5);color:#fff;}
+.btn-primary:hover{background:var(--c6);}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--c5);}
+.btn-outline:hover{background:var(--bg);}
+.btn-danger{background:#fdecea;color:var(--danger);border:1px solid #fad4d0;}
+.btn-danger:hover{background:#fad4d0;}
+.btn-sm{padding:0.35rem 0.75rem;font-size:0.65rem;}
+.btn-success{background:#eafaf1;color:var(--success);border:1px solid #d5f5e3;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(30,43,64,0.5);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.modal-bg.open{opacity:1;pointer-events:all;}
+.modal{background:var(--white);border-radius:16px;width:90%;max-width:560px;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:transform 0.25s;}
+.modal-bg.open .modal{transform:translateY(0);}
+.modal-head{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-head h3{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--c6);}
+.modal-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);}
+.modal-body{padding:1.5rem;}
+.modal-foot{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:0.75rem;justify-content:flex-end;}
+
+/* FORMS */
+.form-row{margin-bottom:1.1rem;}
+.form-row label{display:block;font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--c4);margin-bottom:0.4rem;font-weight:500;}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:0.7rem 0.9rem;border:1px solid var(--border);border-radius:6px;font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--c6);background:var(--white);outline:none;transition:border-color 0.2s;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--c3);}
+.form-row textarea{resize:vertical;min-height:80px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+
+/* SEARCH */
+.search-box{position:relative;}
+.search-box input{padding:0.55rem 0.9rem 0.55rem 2.2rem;border:1px solid var(--border);border-radius:6px;font-size:0.82rem;font-family:'Jost',sans-serif;color:var(--c6);background:var(--bg);outline:none;width:220px;transition:border-color 0.2s;}
+.search-box input:focus{border-color:var(--c3);background:var(--white);}
+.search-box::before{content:'🔍';position:absolute;left:0.65rem;top:50%;transform:translateY(-50%);font-size:0.75rem;pointer-events:none;}
+
+/* TOAST */
+.toast-container{position:fixed;top:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;}
+.toast{background:var(--c6);color:#fff;padding:0.75rem 1.5rem;border-radius:8px;font-size:0.8rem;animation:toastIn 0.3s ease;box-shadow:0 4px 20px rgba(30,43,64,0.25);}
+.toast.success{background:var(--success);}
+.toast.danger{background:var(--danger);}
+@keyframes toastIn{from{opacity:0;transform:translateX(30px);}to{opacity:1;transform:translateX(0);}}
+
+/* MISC */
+.page{display:none;}.page.active{display:block;}
+.empty{text-align:center;padding:3rem;color:var(--muted);font-size:0.9rem;}
+.empty-icon{font-size:3rem;margin-bottom:0.8rem;}
+.flex{display:flex;align-items:center;gap:0.5rem;}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--c2);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;color:#fff;font-weight:500;flex-shrink:0;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--c6);margin-bottom:1.5rem;padding-bottom:0.8rem;border-bottom:1px solid var(--border);}
+.color-swatch{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,0.1);display:inline-block;vertical-align:middle;}
+.product-thumb{width:44px;height:56px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:rgba(255,255,255,0.5);}
+
+@media(max-width:900px){
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .sidebar{width:60px;}
+  .sidebar-logo p,.nav-item span,.nav-section,.sidebar-footer{display:none;}
+  .nav-item{padding:0.8rem;justify-content:center;}
+  .sidebar-logo{padding:1rem;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <h1>VEROLA</h1>
+    <p>Admin Panel</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">
+      <span class="nav-icon">📊</span><span>Dashboard</span>
+    </div>
+    <div class="nav-section">Catalogue</div>
+    <div class="nav-item" onclick="showPage('products',this)">
+      <span class="nav-icon">👗</span><span>Products</span>
+    </div>
+    <div class="nav-section">Business</div>
+    <div class="nav-item" onclick="showPage('orders',this)">
+      <span class="nav-icon">📦</span><span>Orders</span>
+    </div>
+    <div class="nav-item" onclick="showPage('customers',this)">
+      <span class="nav-icon">👥</span><span>Customers</span>
+    </div>
+    <div class="nav-section">Settings</div>
+    <div class="nav-item" onclick="showPage('settings',this)">
+      <span class="nav-icon">⚙️</span><span>Settings</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">© 2025 Verola</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-actions">
+      <div class="search-box"><input type="text" placeholder="Search..." id="global-search" oninput="globalSearch(this.value)"></div>
+      <button class="btn btn-primary" id="topbar-add-btn" onclick="openAddModal()">+ Add Product</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div id="page-dashboard" class="page active">
+      <div class="stat-grid">
+        <div class="stat-card blue">
+          <div class="stat-label">Total Products</div>
+          <div class="stat-val" id="stat-products">0</div>
+          <div class="stat-sub">In catalogue</div>
+          <div class="stat-icon">👗</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Total Orders</div>
+          <div class="stat-val" id="stat-orders">0</div>
+          <div class="stat-sub">All time</div>
+          <div class="stat-icon">📦</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-val" id="stat-revenue">₹0</div>
+          <div class="stat-sub">From orders</div>
+          <div class="stat-icon">💰</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Customers</div>
+          <div class="stat-val" id="stat-customers">0</div>
+          <div class="stat-sub">Registered</div>
+          <div class="stat-icon">👥</div>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Recent Orders</h3>
+          <button class="btn btn-outline btn-sm" onclick="showPage('orders',document.querySelector('[onclick*=orders]'))">View All</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Order ID</th><th>Customer</th><th>Products</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody id="dash-orders-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Low Stock -->
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Low Stock Products</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th></tr></thead>
+            <tbody id="dash-stock-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PRODUCTS ═══ -->
+    <div id="page-products" class="page">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>All Products (<span id="product-count">0</span>)</h3>
+          <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Product</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="products-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ORDERS ═══ -->
+    <div id="page-orders" class="page">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>All Orders (<span id="order-count">0</span>)</h3>
+          <button class="btn btn-primary btn-sm" onclick="openAddOrderModal()">+ New Order</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Amount</th><th>Payment</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="orders-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CUSTOMERS ═══ -->
+    <div id="page-customers" class="page">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>All Customers (<span id="customer-count">0</span>)</h3>
+          <button class="btn btn-primary btn-sm" onclick="openAddCustomerModal()">+ Add Customer</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Customer</th><th>Phone</th><th>City</th><th>Total Orders</th><th>Total Spent</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody id="customers-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div id="page-settings" class="page">
+      <div class="section-title">Store Settings</div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:2rem;max-width:600px;">
+        <div class="form-row"><label>Store Name</label><input type="text" id="set-name" value="Verola"></div>
+        <div class="form-row"><label>WhatsApp Number</label><input type="text" id="set-wa" placeholder="91XXXXXXXXXX"></div>
+        <div class="form-row"><label>Instagram Handle</label><input type="text" id="set-ig" placeholder="@verola.clothing"></div>
+        <div class="form-row"><label>Free Shipping Above (₹)</label><input type="number" id="set-ship" value="2999"></div>
+        <div class="form-row"><label>GST Rate (%)</label><input type="number" id="set-gst" value="5"></div>
+        <div class="form-row"><label>Return Policy (days)</label><input type="number" id="set-return" value="30"></div>
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ═══ PRODUCT MODAL ═══ -->
+<div class="modal-bg" id="product-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="product-modal-title">Add New Product</h3>
+      <button class="modal-close" onclick="closeModal('product-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="p-edit-id">
+      <div class="form-grid">
+        <div class="form-row"><label>Product Name *</label><input id="p-name" placeholder="e.g. Linen Shift Dress"></div>
+        <div class="form-row"><label>Category *</label>
+          <select id="p-cat">
+            <option>Dresses</option><option>Tops & Shirts</option><option>Bottoms</option>
+            <option>Outerwear</option><option>Knitwear</option><option>Accessories</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>Price (₹) *</label><input id="p-price" type="number" placeholder="3499"></div>
+        <div class="form-row"><label>Sale Price (₹)</label><input id="p-sale" type="number" placeholder="Leave blank if no sale"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>Stock Quantity *</label><input id="p-stock" type="number" placeholder="50"></div>
+        <div class="form-row"><label>Status</label>
+          <select id="p-status"><option>Active</option><option>Draft</option><option>Out of Stock</option></select>
+        </div>
+      </div>
+      <div class="form-row"><label>Available Sizes</label>
+        <input id="p-sizes" placeholder="XS, S, M, L, XL, XXL">
+      </div>
+      <div class="form-row"><label>Colors</label>
+        <input id="p-colors" placeholder="Navy Blue, White, Beige">
+      </div>
+      <div class="form-row"><label>Description</label>
+        <textarea id="p-desc" placeholder="Product description..."></textarea>
+      </div>
+      <div class="form-row"><label>Theme Color</label>
+        <select id="p-bg">
+          <option value="bg-1">Light Blue</option><option value="bg-2">Steel Blue</option>
+          <option value="bg-3">Sky Blue</option><option value="bg-4">Dark Blue</option>
+          <option value="bg-5">Navy</option><option value="bg-6">Deep Blue</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('product-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ORDER MODAL ═══ -->
+<div class="modal-bg" id="order-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="order-modal-title">Add New Order</h3>
+      <button class="modal-close" onclick="closeModal('order-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="o-edit-id">
+      <div class="form-grid">
+        <div class="form-row"><label>Customer Name *</label><input id="o-cust" placeholder="Customer name"></div>
+        <div class="form-row"><label>Phone *</label><input id="o-phone" placeholder="98765 43210"></div>
+      </div>
+      <div class="form-row"><label>Delivery Address *</label>
+        <textarea id="o-addr" placeholder="Full address with pincode..." style="min-height:60px;"></textarea>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>Product(s)</label><input id="o-items" placeholder="Linen Dress x1, Blazer x1"></div>
+        <div class="form-row"><label>Total Amount (₹) *</label><input id="o-amount" type="number" placeholder="5499"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>Payment Method</label>
+          <select id="o-pay"><option>COD</option><option>UPI</option><option>GPay</option><option>Card</option><option>WhatsApp Pay</option></select>
+        </div>
+        <div class="form-row"><label>Payment Status</label>
+          <select id="o-paystatus"><option>Pending</option><option>Paid</option><option>Refunded</option></select>
+        </div>
+      </div>
+      <div class="form-row"><label>Order Status</label>
+        <select id="o-status">
+          <option>New</option><option>Confirmed</option><option>Processing</option>
+          <option>Shipped</option><option>Delivered</option><option>Cancelled</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Notes</label>
+        <textarea id="o-notes" placeholder="Any special instructions..." style="min-height:55px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('order-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrder()">Save Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CUSTOMER MODAL ═══ -->
+<div class="modal-bg" id="customer-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="customer-modal-title">Add Customer</h3>
+      <button class="modal-close" onclick="closeModal('customer-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cu-edit-id">
+      <div class="form-grid">
+        <div class="form-row"><label>Full Name *</label><input id="cu-name" placeholder="Customer name"></div>
+        <div class="form-row"><label>Phone *</label><input id="cu-phone" placeholder="98765 43210"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>Email</label><input id="cu-email" placeholder="email@example.com"></div>
+        <div class="form-row"><label>City</label><input id="cu-city" placeholder="Surat"></div>
+      </div>
+      <div class="form-row"><label>Address</label>
+        <textarea id="cu-addr" placeholder="Full address..." style="min-height:60px;"></textarea>
+      </div>
+      <div class="form-row"><label>Notes</label>
+        <input id="cu-notes" placeholder="VIP customer, prefers COD...">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('customer-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ORDER STATUS MODAL ═══ -->
+<div class="modal-bg" id="status-modal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-head">
+      <h3>Update Order Status</h3>
+      <button class="modal-close" onclick="closeModal('status-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sm-order-id">
+      <div class="form-row"><label>Order Status</label>
+        <select id="sm-status">
+          <option>New</option><option>Confirmed</option><option>Processing</option>
+          <option>Shipped</option><option>Delivered</option><option>Cancelled</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Payment Status</label>
+        <select id="sm-paystatus"><option>Pending</option><option>Paid</option><option>Refunded</option></select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('status-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateOrderStatus()">Update</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STORAGE ───
+const KEY = 'verola_admin_v1';
+
+function loadData() {
+  try {
+    const d = localStorage.getItem(KEY);
+    return d ? JSON.parse(d) : null;
+  } catch(e) { return null; }
+}
+
+function saveData() {
+  try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e) {}
+}
+
+// ─── DEFAULT DATA ───
+const defaultDB = {
+  products: [
+    {id:'P001',name:'Linen Shift Dress',category:'Dresses',price:3499,salePrice:'',stock:25,sizes:'XS,S,M,L,XL',colors:'Navy Blue, White',status:'Active',desc:'Summer staple in breathable linen.',bg:'bg-1',date:'2025-05-01'},
+    {id:'P002',name:'Oversized Blazer',category:'Outerwear',price:5299,salePrice:6999,stock:15,sizes:'S,M,L,XL',colors:'Black, Cream',status:'Active',desc:'Structured yet relaxed.',bg:'bg-2',date:'2025-05-03'},
+    {id:'P003',name:'Draped Midi Skirt',category:'Bottoms',price:2799,salePrice:'',stock:5,sizes:'XS,S,M,L',colors:'Blue, Beige',status:'Active',desc:'Flowy and elegant.',bg:'bg-3',date:'2025-05-05'},
+    {id:'P004',name:'Relaxed Linen Trousers',category:'Bottoms',price:3199,salePrice:'',stock:30,sizes:'S,M,L,XL,XXL',colors:'White, Navy',status:'Active',desc:'Wide leg comfort.',bg:'bg-4',date:'2025-05-06'},
+    {id:'P005',name:'Silk Blend Blouse',category:'Tops & Shirts',price:2499,salePrice:'',stock:2,sizes:'XS,S,M,L',colors:'Light Blue',status:'Active',desc:'Luxuriously soft.',bg:'bg-5',date:'2025-05-08'},
+  ],
+  orders: [
+    {id:'ORD-001',customer:'Priya Sharma',phone:'9876543210',address:'123 MG Road, Surat 395001',items:'Linen Shift Dress x1',amount:3499,payment:'UPI',payStatus:'Paid',status:'Delivered',notes:'',date:'2025-05-10'},
+    {id:'ORD-002',customer:'Anjali Mehta',phone:'9812345678',address:'45 Ring Road, Ahmedabad',items:'Oversized Blazer x1, Silk Blouse x2',amount:7297,payment:'COD',payStatus:'Pending',status:'Shipped',notes:'Call before delivery',date:'2025-05-11'},
+    {id:'ORD-003',customer:'Ritu Patel',phone:'9011223344',address:'78 Navrang, Surat 395007',items:'Draped Midi Skirt x2',amount:5598,payment:'GPay',payStatus:'Paid',status:'Processing',notes:'',date:'2025-05-12'},
+    {id:'ORD-004',customer:'Sneha Joshi',phone:'9988776655',address:'15 Civil Lines, Baroda',items:'Relaxed Linen Trousers x1',amount:3199,payment:'COD',payStatus:'Pending',status:'Confirmed',notes:'',date:'2025-05-13'},
+  ],
+  customers: [
+    {id:'CU-001',name:'Priya Sharma',phone:'9876543210',email:'priya@example.com',city:'Surat',address:'123 MG Road',notes:'Regular customer',date:'2025-04-01'},
+    {id:'CU-002',name:'Anjali Mehta',phone:'9812345678',email:'anjali@example.com',city:'Ahmedabad',address:'45 Ring Road',notes:'',date:'2025-04-15'},
+    {id:'CU-003',name:'Ritu Patel',phone:'9011223344',email:'ritu@example.com',city:'Surat',address:'78 Navrang',notes:'Prefers COD',date:'2025-05-01'},
+    {id:'CU-004',name:'Sneha Joshi',phone:'9988776655',email:'',city:'Baroda',address:'15 Civil Lines',notes:'',date:'2025-05-10'},
+  ],
+  settings: {name:'Verola',whatsapp:'919876543210',instagram:'@verola.clothing',freeShip:2999,gst:5,returnDays:30}
+};
+
+let db = loadData() || JSON.parse(JSON.stringify(defaultDB));
+
+// ─── PAGE NAV ───
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  const titles = {dashboard:'Dashboard',products:'Products',orders:'Orders',customers:'Customers',settings:'Settings'};
+  document.getElementById('page-title').textContent = titles[id]||id;
+  const addBtn = document.getElementById('topbar-add-btn');
+  if(id==='products'){addBtn.style.display='';addBtn.textContent='+ Add Product';addBtn.onclick=openAddModal;}
+  else if(id==='orders'){addBtn.style.display='';addBtn.textContent='+ New Order';addBtn.onclick=openAddOrderModal;}
+  else if(id==='customers'){addBtn.style.display='';addBtn.textContent='+ Add Customer';addBtn.onclick=openAddCustomerModal;}
+  else addBtn.style.display='none';
+  refreshAll();
+}
+
+// ─── RENDER ───
+function refreshAll() {
+  renderDashboard();
+  renderProducts();
+  renderOrders();
+  renderCustomers();
+}
+
+const BG_STYLES = {
+  'bg-1':'background:linear-gradient(135deg,#A3C5F1,#83A2CD)',
+  'bg-2':'background:linear-gradient(135deg,#6582AA,#4B6387)',
+  'bg-3':'background:linear-gradient(135deg,#83A2CD,#6582AA)',
+  'bg-4':'background:linear-gradient(135deg,#4B6387,#334663)',
+  'bg-5':'background:linear-gradient(135deg,#334663,#1E2B40)',
+  'bg-6':'background:linear-gradient(135deg,#A3C5F1,#1E2B40)',
+};
+
+function statusBadge(s) {
+  const map = {New:'badge-info',Confirmed:'badge-info',Processing:'badge-warning',Shipped:'badge-warning',Delivered:'badge-success',Cancelled:'badge-danger',Active:'badge-success',Draft:'badge-gray','Out of Stock':'badge-danger'};
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+function payBadge(s) {
+  const map = {Paid:'badge-success',Pending:'badge-warning',Refunded:'badge-danger'};
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+function initials(name) {
+  return name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+}
+function fmtDate(d) {
+  try { return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); } catch(e){return d;}
+}
+
+function renderDashboard() {
+  const totalRev = db.orders.filter(o=>o.payStatus==='Paid').reduce((s,o)=>s+Number(o.amount),0);
+  document.getElementById('stat-products').textContent = db.products.length;
+  document.getElementById('stat-orders').textContent = db.orders.length;
+  document.getElementById('stat-revenue').textContent = '₹'+totalRev.toLocaleString('en-IN');
+  document.getElementById('stat-customers').textContent = db.customers.length;
+
+  // Recent orders
+  const tbody = document.getElementById('dash-orders-body');
+  const recent = [...db.orders].reverse().slice(0,5);
+  tbody.innerHTML = recent.length ? recent.map(o=>`
+    <tr>
+      <td><strong>${o.id}</strong></td>
+      <td><div class="flex"><div class="avatar">${initials(o.customer)}</div>${o.customer}</div></td>
+      <td>${o.items}</td>
+      <td><strong>₹${Number(o.amount).toLocaleString('en-IN')}</strong></td>
+      <td>${statusBadge(o.status)}</td>
+      <td>${fmtDate(o.date)}</td>
+    </tr>`).join('') : '<tr><td colspan="6" class="empty"><div class="empty-icon">📦</div><p>No orders yet</p></td></tr>';
+
+  // Low stock
+  const stock = document.getElementById('dash-stock-body');
+  const low = db.products.filter(p=>p.stock<=10);
+  stock.innerHTML = low.length ? low.map(p=>`
+    <tr>
+      <td><div class="flex"><div class="product-thumb" style="${BG_STYLES[p.bg]||''}">V</div>${p.name}</div></td>
+      <td>${p.category}</td>
+      <td>₹${Number(p.price).toLocaleString('en-IN')}</td>
+      <td><span class="badge ${p.stock<=3?'badge-danger':'badge-warning'}">${p.stock} left</span></td>
+    </tr>`).join('') : '<tr><td colspan="4" class="empty"><p>All products have sufficient stock ✓</p></td></tr>';
+}
+
+function renderProducts() {
+  const tbody = document.getElementById('products-body');
+  document.getElementById('product-count').textContent = db.products.length;
+  tbody.innerHTML = db.products.length ? db.products.map(p=>`
+    <tr>
+      <td><div class="flex"><div class="product-thumb" style="${BG_STYLES[p.bg]||''}">V</div><div><div style="font-weight:500;">${p.name}</div><div style="font-size:0.72rem;color:var(--muted);">${p.sizes||'—'}</div></div></div></td>
+      <td>${p.category}</td>
+      <td><strong>₹${Number(p.price).toLocaleString('en-IN')}</strong>${p.salePrice?`<br><s style="font-size:0.72rem;color:var(--muted);">₹${Number(p.salePrice).toLocaleString('en-IN')}</s>`:''}</td>
+      <td><span class="badge ${p.stock<=3?'badge-danger':p.stock<=10?'badge-warning':'badge-success'}">${p.stock} pcs</span></td>
+      <td>${statusBadge(p.status)}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editProduct('${p.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Del</button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="6" class="empty"><div class="empty-icon">👗</div><p>No products yet. Add your first product!</p></td></tr>';
+}
+
+function renderOrders() {
+  const tbody = document.getElementById('orders-body');
+  document.getElementById('order-count').textContent = db.orders.length;
+  tbody.innerHTML = db.orders.length ? [...db.orders].reverse().map(o=>`
+    <tr>
+      <td><strong>${o.id}</strong></td>
+      <td><div class="flex"><div class="avatar">${initials(o.customer)}</div><div><div>${o.customer}</div><div style="font-size:0.72rem;color:var(--muted);">${o.phone}</div></div></div></td>
+      <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.items}</td>
+      <td><strong>₹${Number(o.amount).toLocaleString('en-IN')}</strong></td>
+      <td>${payBadge(o.payStatus)}<br><span style="font-size:0.68rem;color:var(--muted);">${o.payment}</span></td>
+      <td>${statusBadge(o.status)}</td>
+      <td>${fmtDate(o.date)}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="openStatusModal('${o.id}')">Status</button>
+        <button class="btn btn-outline btn-sm" onclick="editOrder('${o.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.id}')">Del</button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="8" class="empty"><div class="empty-icon">📦</div><p>No orders yet</p></td></tr>';
+}
+
+function renderCustomers() {
+  const tbody = document.getElementById('customers-body');
+  document.getElementById('customer-count').textContent = db.customers.length;
+  tbody.innerHTML = db.customers.length ? db.customers.map(c=>{
+    const cOrders = db.orders.filter(o=>o.phone===c.phone);
+    const spent = cOrders.filter(o=>o.payStatus==='Paid').reduce((s,o)=>s+Number(o.amount),0);
+    return `<tr>
+      <td><div class="flex"><div class="avatar">${initials(c.name)}</div><div><div style="font-weight:500;">${c.name}</div><div style="font-size:0.72rem;color:var(--muted);">${c.email||'—'}</div></div></div></td>
+      <td>${c.phone}</td>
+      <td>${c.city||'—'}</td>
+      <td>${cOrders.length}</td>
+      <td>₹${spent.toLocaleString('en-IN')}</td>
+      <td>${fmtDate(c.date)}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editCustomer('${c.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Del</button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" class="empty"><div class="empty-icon">👥</div><p>No customers yet</p></td></tr>';
+}
+
+// ─── PRODUCT CRUD ───
+function genId(prefix) {
+  return prefix + String(Date.now()).slice(-6);
+}
+function openAddModal() {
+  document.getElementById('product-modal-title').textContent = 'Add New Product';
+  document.getElementById('p-edit-id').value = '';
+  ['p-name','p-price','p-sale','p-stock','p-sizes','p-colors','p-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-cat').value='Dresses';
+  document.getElementById('p-status').value='Active';
+  document.getElementById('p-bg').value='bg-1';
+  openModal('product-modal');
+}
+function editProduct(id) {
+  const p = db.products.find(x=>x.id===id); if(!p) return;
+  document.getElementById('product-modal-title').textContent = 'Edit Product';
+  document.getElementById('p-edit-id').value = p.id;
+  document.getElementById('p-name').value = p.name;
+  document.getElementById('p-cat').value = p.category;
+  document.getElementById('p-price').value = p.price;
+  document.getElementById('p-sale').value = p.salePrice||'';
+  document.getElementById('p-stock').value = p.stock;
+  document.getElementById('p-status').value = p.status;
+  document.getElementById('p-sizes').value = p.sizes||'';
+  document.getElementById('p-colors').value = p.colors||'';
+  document.getElementById('p-desc').value = p.desc||'';
+  document.getElementById('p-bg').value = p.bg||'bg-1';
+  openModal('product-modal');
+}
+function saveProduct() {
+  const name = document.getElementById('p-name').value.trim();
+  const price = document.getElementById('p-price').value;
+  const stock = document.getElementById('p-stock').value;
+  if(!name||!price||!stock){showToast('Naam, price aur stock zaroori hai!','danger');return;}
+  const editId = document.getElementById('p-edit-id').value;
+  const product = {
+    id: editId || genId('P'),
+    name, category: document.getElementById('p-cat').value,
+    price: Number(price), salePrice: document.getElementById('p-sale').value||'',
+    stock: Number(stock), status: document.getElementById('p-status').value,
+    sizes: document.getElementById('p-sizes').value,
+    colors: document.getElementById('p-colors').value,
+    desc: document.getElementById('p-desc').value,
+    bg: document.getElementById('p-bg').value,
+    date: editId ? db.products.find(x=>x.id===editId).date : new Date().toISOString().slice(0,10)
+  };
+  if(editId) { const i=db.products.findIndex(x=>x.id===editId); db.products[i]=product; }
+  else db.products.push(product);
+  saveData(); closeModal('product-modal'); refreshAll();
+  showToast(editId?'Product update ho gaya! ✓':'Naya product add ho gaya! ✓','success');
+}
+function deleteProduct(id) {
+  if(!confirm('Yeh product delete karna chahte ho?')) return;
+  db.products = db.products.filter(p=>p.id!==id);
+  saveData(); refreshAll(); showToast('Product delete ho gaya','danger');
+}
+
+// ─── ORDER CRUD ───
+function openAddOrderModal() {
+  document.getElementById('order-modal-title').textContent = 'New Order';
+  document.getElementById('o-edit-id').value='';
+  ['o-cust','o-phone','o-addr','o-items','o-amount','o-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('o-pay').value='COD';
+  document.getElementById('o-paystatus').value='Pending';
+  document.getElementById('o-status').value='New';
+  openModal('order-modal');
+}
+function editOrder(id) {
+  const o = db.orders.find(x=>x.id===id); if(!o) return;
+  document.getElementById('order-modal-title').textContent = 'Edit Order';
+  document.getElementById('o-edit-id').value=o.id;
+  document.getElementById('o-cust').value=o.customer;
+  document.getElementById('o-phone').value=o.phone;
+  document.getElementById('o-addr').value=o.address;
+  document.getElementById('o-items').value=o.items;
+  document.getElementById('o-amount').value=o.amount;
+  document.getElementById('o-pay').value=o.payment;
+  document.getElementById('o-paystatus').value=o.payStatus;
+  document.getElementById('o-status').value=o.status;
+  document.getElementById('o-notes').value=o.notes||'';
+  openModal('order-modal');
+}
+function saveOrder() {
+  const cust=document.getElementById('o-cust').value.trim();
+  const phone=document.getElementById('o-phone').value.trim();
+  const amount=document.getElementById('o-amount').value;
+  if(!cust||!phone||!amount){showToast('Customer, phone aur amount zaroori hai!','danger');return;}
+  const editId=document.getElementById('o-edit-id').value;
+  const order = {
+    id: editId||genId('ORD-'),
+    customer:cust, phone, address:document.getElementById('o-addr').value,
+    items:document.getElementById('o-items').value||'—',
+    amount:Number(amount), payment:document.getElementById('o-pay').value,
+    payStatus:document.getElementById('o-paystatus').value,
+    status:document.getElementById('o-status').value,
+    notes:document.getElementById('o-notes').value,
+    date: editId?db.orders.find(x=>x.id===editId).date:new Date().toISOString().slice(0,10)
+  };
+  // Auto-add customer
+  if(!db.customers.find(c=>c.phone===phone)) {
+    db.customers.push({id:genId('CU-'),name:cust,phone,email:'',city:'',address:'',notes:'',date:order.date});
+  }
+  if(editId){const i=db.orders.findIndex(x=>x.id===editId);db.orders[i]=order;}
+  else db.orders.push(order);
+  saveData();closeModal('order-modal');refreshAll();
+  showToast(editId?'Order update ho gaya! ✓':'Naya order add ho gaya! ✓','success');
+}
+function deleteOrder(id){
+  if(!confirm('Yeh order delete karna chahte ho?'))return;
+  db.orders=db.orders.filter(o=>o.id!==id);
+  saveData();refreshAll();showToast('Order delete ho gaya','danger');
+}
+function openStatusModal(id){
+  const o=db.orders.find(x=>x.id===id);if(!o)return;
+  document.getElementById('sm-order-id').value=id;
+  document.getElementById('sm-status').value=o.status;
+  document.getElementById('sm-paystatus').value=o.payStatus;
+  openModal('status-modal');
+}
+function updateOrderStatus(){
+  const id=document.getElementById('sm-order-id').value;
+  const i=db.orders.findIndex(x=>x.id===id);if(i<0)return;
+  db.orders[i].status=document.getElementById('sm-status').value;
+  db.orders[i].payStatus=document.getElementById('sm-paystatus').value;
+  saveData();closeModal('status-modal');refreshAll();showToast('Status update ho gaya! ✓','success');
+}
+
+// ─── CUSTOMER CRUD ───
+function openAddCustomerModal(){
+  document.getElementById('customer-modal-title').textContent='Add Customer';
+  document.getElementById('cu-edit-id').value='';
+  ['cu-name','cu-phone','cu-email','cu-city','cu-addr','cu-notes'].forEach(id=>document.getElementById(id).value='');
+  openModal('customer-modal');
+}
+function editCustomer(id){
+  const c=db.customers.find(x=>x.id===id);if(!c)return;
+  document.getElementById('customer-modal-title').textContent='Edit Customer';
+  document.getElementById('cu-edit-id').value=c.id;
+  document.getElementById('cu-name').value=c.name;
+  document.getElementById('cu-phone').value=c.phone;
+  document.getElementById('cu-email').value=c.email||'';
+  document.getElementById('cu-city').value=c.city||'';
+  document.getElementById('cu-addr').value=c.address||'';
+  document.getElementById('cu-notes').value=c.notes||'';
+  openModal('customer-modal');
+}
+function saveCustomer(){
+  const name=document.getElementById('cu-name').value.trim();
+  const phone=document.getElementById('cu-phone').value.trim();
+  if(!name||!phone){showToast('Naam aur phone zaroori hai!','danger');return;}
+  const editId=document.getElementById('cu-edit-id').value;
+  const cust={
+    id:editId||genId('CU-'),name,phone,
+    email:document.getElementById('cu-email').value,
+    city:document.getElementById('cu-city').value,
+    address:document.getElementById('cu-addr').value,
+    notes:document.getElementById('cu-notes').value,
+    date:editId?db.customers.find(x=>x.id===editId).date:new Date().toISOString().slice(0,10)
+  };
+  if(editId){const i=db.customers.findIndex(x=>x.id===editId);db.customers[i]=cust;}
+  else db.customers.push(cust);
+  saveData();closeModal('customer-modal');refreshAll();
+  showToast(editId?'Customer update ho gaya! ✓':'Customer add ho gaya! ✓','success');
+}
+function deleteCustomer(id){
+  if(!confirm('Yeh customer delete karna chahte ho?'))return;
+  db.customers=db.customers.filter(c=>c.id!==id);
+  saveData();refreshAll();showToast('Customer delete ho gaya','danger');
+}
+
+// ─── SETTINGS ───
+function saveSettings(){
+  db.settings={
+    name:document.getElementById('set-name').value,
+    whatsapp:document.getElementById('set-wa').value,
+    instagram:document.getElementById('set-ig').value,
+    freeShip:Number(document.getElementById('set-ship').value),
+    gst:Number(document.getElementById('set-gst').value),
+    returnDays:Number(document.getElementById('set-return').value)
+  };
+  saveData();showToast('Settings save ho gayi! ✓','success');
+}
+
+// ─── SEARCH ───
+function globalSearch(q){
+  if(!q)return;
+  q=q.toLowerCase();
+  const inP=db.products.some(p=>p.name.toLowerCase().includes(q));
+  const inO=db.orders.some(o=>o.customer.toLowerCase().includes(q)||o.id.toLowerCase().includes(q));
+  const inC=db.customers.some(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q));
+  if(inC) showPage('customers',document.querySelector('[onclick*=customers]'));
+  else if(inO) showPage('orders',document.querySelector('[onclick*=orders]'));
+  else if(inP) showPage('products',document.querySelector('[onclick*=products]'));
+}
+
+// ─── MODAL UTILS ───
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+});
+
+// ─── TOAST ───
+function showToast(msg,type=''){
+  const tc=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className='toast'+(type?' '+type:'');
+  t.textContent=msg;
+  tc.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+// ─── INIT SETTINGS ───
+function initSettings(){
+  const s=db.settings||{};
+  if(s.name) document.getElementById('set-name').value=s.name;
+  if(s.whatsapp) document.getElementById('set-wa').value=s.whatsapp;
+  if(s.instagram) document.getElementById('set-ig').value=s.instagram;
+  if(s.freeShip) document.getElementById('set-ship').value=s.freeShip;
+  if(s.gst) document.getElementById('set-gst').value=s.gst;
+  if(s.returnDays) document.getElementById('set-return').value=s.returnDays;
+}
+
+// ─── BOOT ───
+initSettings();
+refreshAll();
+document.getElementById('topbar-add-btn').style.display='';
+</script>
+</body>
+</html>
